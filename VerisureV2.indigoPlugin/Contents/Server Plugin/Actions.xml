@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<Actions>
+  <Action id="UpdateLockState" deviceFilter="self.verisureDoorLockDeviceType">
+    <Name>Update Lock Status</Name>
+    <CallbackMethod>updateLockState</CallbackMethod>
+    <ConfigUI>
+      <Field id="new_status" type="menu" defaultValue="">
+        <Label>State:</Label>
+        <List>
+          <Option value="lock">Lock</Option>
+          <Option value="unlock">Unlock</Option>
+        </List>
+      </Field>
+    </ConfigUI>
+  </Action>
+
+  <Action id="updateLockConfig" deviceFilter="self.verisureDoorLockDeviceType">
+    <Name>Update AutoLock State</Name>
+    <CallbackMethod>updateLockConfig</CallbackMethod>
+    <ConfigUI>
+      <Field id="auto_lock_enabled" type="checkbox" defaultValue="False">
+        <Label>Automatic Locking:</Label>
+      </Field>
+    </ConfigUI>
+  </Action>
+
+</Actions>
