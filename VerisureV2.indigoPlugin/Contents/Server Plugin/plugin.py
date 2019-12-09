@@ -30,9 +30,12 @@ class Plugin(indigo.PluginBase):
 		self.loggedIn = False
 
 		self.lockIDs = list()
+		self.alarmIDs = list()
 		
 		self.lidFromDev = dict()
+		self.alarmidFromDev = dict()
 		self.devFromLid = dict()
+		self.devFromAlarmid = dict()
 
 	########################################
 	def startup(self):
@@ -73,7 +76,16 @@ class Plugin(indigo.PluginBase):
 			
 			dev.updateStateOnServer("deviceLabel",lockID)
 			
-			#self.debugLog(self.session.get_lock_config(lockID))
+		elif (dev.deviceTypeId == "verisureAlarmDeviceType"):
+			devID = dev.id																							#devID is the Indigo ID of my dummy device
+			alarmID = dev.ownerProps['alarmID']													#alarmID is the locationID of the Verisure installation
+			dev.updateStateOnServer("locationID",alarmID)
+			
+			self.alarmidFromDev[int(devID)] = str(alarmID)
+			self.devFromAlarmid[str(alarmID)] = int(devID)
+			
+			self.alarmIDs.append(alarmID)
+
 
 	def deviceStopComm(self, dev):
 		if (dev.deviceTypeId == "verisureDoorLockDeviceType"):
@@ -84,6 +96,15 @@ class Plugin(indigo.PluginBase):
 			self.devFromLid.pop(str(lockID),None)
 
 			self.lockIDs.remove(lockID)
+			
+		elif (dev.deviceTypeId == "verisureAlarmDeviceType"):
+			devID = dev.id
+			alarmID = dev.ownerProps['alarmID']
+			
+			self.alarmidFromDev.pop(int(devID),None)
+			self.devFromAlarmid.pop(str(alarmID),None)
+			
+			self.alarmIDs.remove(alarmID)
 
 
 	def doLogin(self,logout=False):
@@ -135,7 +156,7 @@ class Plugin(indigo.PluginBase):
 							dev.updateStateOnServer(key,doorLock[key])
 						except:
 							pass
-							#Setting correct icon
+					#Setting correct icon
 					if dev.states['currentLockState'] == u"LOCKED":
 						dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
 						dev.updateStateOnServer('onOffState', True)
@@ -148,6 +169,31 @@ class Plugin(indigo.PluginBase):
 						dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
 					lConfig = self.session.get_lock_config(lockID)
 					dev.updateStateOnServer('autoLockEnabled', lConfig["autoLockEnabled"])
+			
+			userTracking = self.overview['userTracking']
+			locations = userTracking['locations']
+			armState = self.overview['armState']
+			
+			for location in locations:
+				alarmID = location["locationId"]
+				if alarmID in self.alarmIDs:
+					dev = indigo.devices[int(self.devFromAlarmid[str(alarmID)])]
+					dev.updateStateOnServer("lastSynchronized", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+					dev.updateStateOnServer("location",location["isInstallationAddress"])
+					for key in armState.keys():
+						try:
+							dev.updateStateOnServer(key,armState[key])
+						except:
+							pass
+					if dev.states['statusType'] == "ARMED_AWAY":
+						dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+						#dev.updateStateOnServer('onOffState', True)
+					elif dev.states['statusType'] == "ARMED_HOME":
+						dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+						#dev.updateStateOnServer('onOffState', True)
+					elif dev.states['statusType'] == "DISARMED":
+						dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+						#dev.updateStateOnServer('onOffState', False)
 
 	def getVerisureDeviceList(self, filter="All", typeId=0, valuesDict=None, targetId=0):
 		self.refreshData()
@@ -158,6 +204,12 @@ class Plugin(indigo.PluginBase):
 
 			for doorLock in doorLocks:
 				deviceList = deviceList + [(doorLock["deviceLabel"], doorLock["area"])]
+		elif(filter == "alarm"):
+			userTracking = self.overview['userTracking']
+			locations = userTracking['locations']
+			
+			for location in locations:
+				deviceList = deviceList + [(location["locationId"], location["locationName"])]
 
 		return sorted(deviceList)
 
@@ -173,6 +225,9 @@ class Plugin(indigo.PluginBase):
 		self.session.set_lock_config(dev.ownerProps['deviceLabel'],None,None,state)
 		dev.updateStateOnServer('autoLockEnabled', state)
 		self.sleep(5)
+		self.refreshData()
+
+	def checkNow(self, pluginAction, dev):
 		self.refreshData()
 
 
@@ -202,25 +257,26 @@ class Plugin(indigo.PluginBase):
 	# Action Control callback
 	######################
 	def actionControlDevice(self, action, dev):
-		if action.deviceAction == indigo.kDeviceAction.Lock or action.deviceAction == indigo.kDeviceAction.Unlock:
-			if action.deviceAction == indigo.kDeviceAction.Unlock:
-				if dev.states['currentLockState'] == u"LOCKED":
-					indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Unlock request"))
-					cmd = 'unlock'
+		if (dev.deviceTypeId == "verisureDoorLockDeviceType"):
+			if action.deviceAction == indigo.kDeviceAction.Lock or action.deviceAction == indigo.kDeviceAction.Unlock:
+				if action.deviceAction == indigo.kDeviceAction.Unlock:
+					if dev.states['currentLockState'] == u"LOCKED":
+						indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Unlock request"))
+						cmd = 'unlock'
+					else:
+						indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Already unlocked"))
+						return #Already unlocked
 				else:
-					indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Already unlocked"))
-					return #Already unlocked
-			else:
-				if dev.states['currentLockState'] == u"UNLOCKED":
-					indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Lock request"))
-					cmd = 'lock'
-				else:
-					indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Already locked"))
-					return #Already locked
-			self.session.set_lock_state(dev.ownerProps['userPin'],dev.ownerProps['deviceLabel'],cmd)
-			dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
-			self.sleep(5)
-			self.refreshData()
+					if dev.states['currentLockState'] == u"UNLOCKED":
+						indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Lock request"))
+						cmd = 'lock'
+					else:
+						indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Already locked"))
+						return #Already locked
+				self.session.set_lock_state(dev.ownerProps['userPin'],dev.ownerProps['deviceLabel'],cmd)
+				dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
+				self.sleep(5)
+				self.refreshData()
 
 	########################################
 	# General Action callback

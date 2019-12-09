@@ -9,7 +9,7 @@ from . import urls
 import os
 
 import logging
-logger = logging.getLogger("Plugin.Tesla") #Can call it whatever I like
+logger = logging.getLogger("Plugin.Verisure") #Can call it whatever I like
 
 def _validate_response(response):
 	""" Verify that response is OK """

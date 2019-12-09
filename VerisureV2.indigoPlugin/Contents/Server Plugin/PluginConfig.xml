@@ -15,6 +15,7 @@
   <Field type="menu" id="updateRate" defaultValue="300">
     <Label>Status Update Rate:</Label>
     <List>
+    	<Option value="5">5 sec</Option>
       <Option value="15">15 sec</Option>
       <Option value="30">30 sec</Option>
       <Option value="60">1 min</Option>
