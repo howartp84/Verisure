@@ -154,6 +154,9 @@ class Plugin(indigo.PluginBase):
 					for key in doorLock.keys():
 						try:
 							dev.updateStateOnServer(key,doorLock[key])
+							if (key == "area") and ("new device" in dev.name):
+								dev.name = u"Lock: %s" % doorLock[key]
+								dev.replaceOnServer()
 						except:
 							pass
 					#Setting correct icon
@@ -179,21 +182,21 @@ class Plugin(indigo.PluginBase):
 				if alarmID in self.alarmIDs:
 					dev = indigo.devices[int(self.devFromAlarmid[str(alarmID)])]
 					dev.updateStateOnServer("lastSynchronized", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-					dev.updateStateOnServer("location",location["isInstallationAddress"])
+					dev.updateStateOnServer("location",location["locationName"])
+					if ("new device" in dev.name):
+						dev.name = u"Verisure Alarm"
+						dev.replaceOnServer()
 					for key in armState.keys():
 						try:
 							dev.updateStateOnServer(key,armState[key])
 						except:
 							pass
 					if dev.states['statusType'] == "ARMED_AWAY":
-						dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
-						#dev.updateStateOnServer('onOffState', True)
+						dev.updateStateImageOnServer(indigo.kStateImageSel.Locked)
 					elif dev.states['statusType'] == "ARMED_HOME":
-						dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
-						#dev.updateStateOnServer('onOffState', True)
+						dev.updateStateImageOnServer(indigo.kStateImageSel.Locked)
 					elif dev.states['statusType'] == "DISARMED":
-						dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
-						#dev.updateStateOnServer('onOffState', False)
+						dev.updateStateImageOnServer(indigo.kStateImageSel.Unlocked)
 
 	def getVerisureDeviceList(self, filter="All", typeId=0, valuesDict=None, targetId=0):
 		self.refreshData()
@@ -226,8 +229,11 @@ class Plugin(indigo.PluginBase):
 		dev.updateStateOnServer('autoLockEnabled', state)
 		self.sleep(5)
 		self.refreshData()
-
-	def checkNow(self, pluginAction, dev):
+		
+	def UpdateAlarmStatus(self, pluginAction, dev):
+		cmd = pluginAction.props['new_status']
+		self.session.set_arm_state(dev.ownerProps['userPin'],dev.ownerProps['deviceLabel'],cmd)
+		self.sleep(5)
 		self.refreshData()
 
 
@@ -277,6 +283,7 @@ class Plugin(indigo.PluginBase):
 				dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
 				self.sleep(5)
 				self.refreshData()
+			
 
 	########################################
 	# General Action callback

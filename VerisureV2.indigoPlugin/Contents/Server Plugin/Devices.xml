@@ -1,18 +1,23 @@
 <?xml version="1.0"?>
 <Devices>
-  <Device type="relay" id="verisureAlarmDeviceType">
+  <Device type="custom" id="verisureAlarmDeviceType">
     <Name>Verisure Alarm</Name>
     <ConfigUI>
       <Field id="alarmID" type="menu">
         <Label>Alarm ID</Label>
         <List class="self" filter="alarm" method="getVerisureDeviceList" dynamicReload="true"/>
       </Field>
-      <Field type="checkbox" id="IsLockSubType" hidden="true" defaultValue="true" />
     </ConfigUI>
     <UiDisplayStateId>statusType</UiDisplayStateId>
     <States>
       <State id="statusType">
-        <ValueType>String</ValueType>
+        <ValueType>
+          <List>
+            <Option value="ARMED_HOME">Armed Home</Option>
+            <Option value="ARMED_AWAY">Armed Away</Option>
+            <Option value="DISARMED">Disarmed</Option>
+          </List>
+        </ValueType>
         <TriggerLabel>Operation Mode Changed</TriggerLabel>
         <TriggerLabelPrefix>Mode Changed to</TriggerLabelPrefix>
         <ControlPageLabel>Current Mode</ControlPageLabel>
@@ -144,7 +149,12 @@
     <UiDisplayStateId>currentLockState</UiDisplayStateId>
     <States>
       <State id="currentLockState">
-        <ValueType>String</ValueType>
+         <ValueType>
+          <List>
+            <Option value="UNLOCKED">Unlocked</Option>
+            <Option value="LOCKED">Locked</Option>
+          </List>
+        </ValueType>
         <TriggerLabel>Door Lock Status Changed</TriggerLabel>
         <TriggerLabelPrefix>Status changed to</TriggerLabelPrefix>
         <ControlPageLabel>Current Status</ControlPageLabel>

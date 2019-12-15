@@ -189,26 +189,29 @@ class Session(object):
 		_validate_response(response)
 		return json.loads(response.text)
 
-	def set_smartplug_state(self, device_label, state):
-		""" Turn on or off smartplug
+#######################################
+#######################################
+#######################################
+#
+# Alarm Commands
+#
+#######################################
+#######################################
+#######################################
 
-		Args:
-			device_label (str): Smartplug device label
-			state (boolean): new status, 'True' or 'False'
-		"""
+	def get_arm_state(self):
+		""" Get arm state """
 		response = None
 		try:
-			response = requests.post(
-				urls.smartplug(self._giid),
+			response = requests.get(
+				urls.get_armstate(self._giid),
 				headers={
-					'Content-Type': 'application/json',
-					'Cookie': 'vid={}'.format(self._vid)},
-				data=json.dumps([{
-					"deviceLabel": device_label,
-					"state": state}]))
+					'Accept': 'application/json, text/javascript, */*; q=0.01',
+					'Cookie': 'vid={}'.format(self._vid)})
 		except requests.exceptions.RequestException as ex:
 			raise RequestError(ex)
 		_validate_response(response)
+		return json.loads(response.text)
 
 	def set_arm_state(self, code, state):
 		""" Set alarm state
@@ -249,64 +252,15 @@ class Session(object):
 		_validate_response(response)
 		return json.loads(response.text)
 
-	def get_arm_state(self):
-		""" Get arm state """
-		response = None
-		try:
-			response = requests.get(
-				urls.get_armstate(self._giid),
-				headers={
-					'Accept': 'application/json, text/javascript, */*; q=0.01',
-					'Cookie': 'vid={}'.format(self._vid)})
-		except requests.exceptions.RequestException as ex:
-			raise RequestError(ex)
-		_validate_response(response)
-		return json.loads(response.text)
-
-	def get_history(self, filters=(), pagesize=15, offset=0):
-		""" Get recent events
-
-		Args:
-			filters (string set): 'ARM', 'DISARM', 'FIRE', 'INTRUSION',
-								  'TECHNICAL', 'SOS', 'WARNING', 'LOCK',
-								  'UNLOCK', 'PICTURE', 'CLIMATE'
-			pagesize (int): Number of events to display
-			offset (int): Skip pagesize * offset first events
-		"""
-		response = None
-		try:
-			response = requests.get(
-				urls.history(self._giid),
-				headers={
-					'Accept': 'application/json, text/javascript, */*; q=0.01',
-					'Cookie': 'vid={}'.format(self._vid)},
-				params={
-					"offset": int(offset),
-					"pagesize": int(pagesize),
-					"eventCategories": filters})
-		except requests.exceptions.RequestException as ex:
-			raise RequestError(ex)
-		_validate_response(response)
-		return json.loads(response.text)
-
-	def get_climate(self, device_label):
-		""" Get climate history
-		Args:
-			device_label: device label of climate device
-		"""
-		response = None
-		try:
-			response = requests.get(
-				urls.climate(self._giid),
-				headers={
-					'Accept': 'application/json, text/javascript, */*; q=0.01',
-					'Cookie': 'vid={}'.format(self._vid)},
-				params={
-					"deviceLabel": device_label})
-		except requests.exceptions.RequestException as ex:
-			raise RequestError(ex)
-		_validate_response(response)
-		return json.loads(response.text)
+#######################################
+#######################################
+#######################################
+#
+# Door/Window Commands
+#
+#######################################
+#######################################
+#######################################
 
 	def get_lock_state(self):
 		""" Get current lock status """
@@ -409,6 +363,61 @@ class Session(object):
 			raise RequestError(ex)
 		_validate_response(response)
 
+	def get_door_window(self):
+		""" Get door_window states"""
+		response = None
+		try:
+			response = requests.get(
+				urls.door_window(self._giid),
+				headers={
+					'Accept': 'application/json, text/javascript, */*; q=0.01',
+					'Cookie': 'vid={}'.format(self._vid)})
+		except requests.exceptions.RequestException as ex:
+			raise RequestError(ex)
+		_validate_response(response)
+		return json.loads(response.text)
+
+#######################################
+#######################################
+#######################################
+#
+# Smart Plug Commands
+#
+#######################################
+#######################################
+#######################################
+
+	def set_smartplug_state(self, device_label, state):
+		""" Turn on or off smartplug
+
+		Args:
+			device_label (str): Smartplug device label
+			state (boolean): new status, 'True' or 'False'
+		"""
+		response = None
+		try:
+			response = requests.post(
+				urls.smartplug(self._giid),
+				headers={
+					'Content-Type': 'application/json',
+					'Cookie': 'vid={}'.format(self._vid)},
+				data=json.dumps([{
+					"deviceLabel": device_label,
+					"state": state}]))
+		except requests.exceptions.RequestException as ex:
+			raise RequestError(ex)
+		_validate_response(response)
+
+#######################################
+#######################################
+#######################################
+#
+# Camera Commands
+#
+#######################################
+#######################################
+#######################################
+
 	def capture_image(self, device_label):
 		""" Capture smartcam image
 
@@ -475,58 +484,15 @@ class Session(object):
 				if chunk:
 					image_file.write(chunk)
 
-	def get_vacation_mode(self):
-		""" Get current vacation mode """
-		response = None
-		try:
-			response = requests.get(
-				urls.get_vacationmode(self._giid),
-				headers={
-					'Accept': 'application/json, text/javascript, */*; q=0.01',
-					'Cookie': 'vid={}'.format(self._vid)})
-		except requests.exceptions.RequestException as ex:
-			raise RequestError(ex)
-		_validate_response(response)
-		return json.loads(response.text)
-
-	def get_door_window(self):
-		""" Get door_window states"""
-		response = None
-		try:
-			response = requests.get(
-				urls.door_window(self._giid),
-				headers={
-					'Accept': 'application/json, text/javascript, */*; q=0.01',
-					'Cookie': 'vid={}'.format(self._vid)})
-		except requests.exceptions.RequestException as ex:
-			raise RequestError(ex)
-		_validate_response(response)
-		return json.loads(response.text)
-
-	def test_ethernet(self):
-		""" Test ethernet status """
-		response = None
-		try:
-			response = requests.post(
-				urls.test_ethernet(self._giid),
-				headers={
-					'Content-Type': 'application/json',
-					'Cookie': 'vid={}'.format(self._vid)})
-		except requests.exceptions.RequestException as ex:
-			raise RequestError(ex)
-		_validate_response(response)
-
-	def logout(self):
-		""" Logout and remove vid """
-		response = None
-		try:
-			response = requests.delete(
-				urls.login(),
-				headers={
-					'Cookie': 'vid={}'.format(self._vid)})
-		except requests.exceptions.RequestException as ex:
-			raise RequestError(ex)
-		_validate_response(response)
+#######################################
+#######################################
+#######################################
+#
+# Heat Pump Commands
+#
+#######################################
+#######################################
+#######################################
 
 	def get_heat_pump_state(self, device_label):
 		""" Get heatpump states"""
@@ -656,3 +622,98 @@ class Session(object):
 			raise RequestError(ex)
 		_validate_response(response)
 		return json.loads(response.text)
+
+#######################################
+#######################################
+#######################################
+#
+# Misc Commands
+#
+#######################################
+#######################################
+#######################################
+
+
+	def get_history(self, filters=(), pagesize=15, offset=0):
+		""" Get recent events
+
+		Args:
+			filters (string set): 'ARM', 'DISARM', 'FIRE', 'INTRUSION',
+								  'TECHNICAL', 'SOS', 'WARNING', 'LOCK',
+								  'UNLOCK', 'PICTURE', 'CLIMATE'
+			pagesize (int): Number of events to display
+			offset (int): Skip pagesize * offset first events
+		"""
+		response = None
+		try:
+			response = requests.get(
+				urls.history(self._giid),
+				headers={
+					'Accept': 'application/json, text/javascript, */*; q=0.01',
+					'Cookie': 'vid={}'.format(self._vid)},
+				params={
+					"offset": int(offset),
+					"pagesize": int(pagesize),
+					"eventCategories": filters})
+		except requests.exceptions.RequestException as ex:
+			raise RequestError(ex)
+		_validate_response(response)
+		return json.loads(response.text)
+
+	def get_climate(self, device_label):
+		""" Get climate history
+		Args:
+			device_label: device label of climate device
+		"""
+		response = None
+		try:
+			response = requests.get(
+				urls.climate(self._giid),
+				headers={
+					'Accept': 'application/json, text/javascript, */*; q=0.01',
+					'Cookie': 'vid={}'.format(self._vid)},
+				params={
+					"deviceLabel": device_label})
+		except requests.exceptions.RequestException as ex:
+			raise RequestError(ex)
+		_validate_response(response)
+		return json.loads(response.text)
+
+	def get_vacation_mode(self):
+		""" Get current vacation mode """
+		response = None
+		try:
+			response = requests.get(
+				urls.get_vacationmode(self._giid),
+				headers={
+					'Accept': 'application/json, text/javascript, */*; q=0.01',
+					'Cookie': 'vid={}'.format(self._vid)})
+		except requests.exceptions.RequestException as ex:
+			raise RequestError(ex)
+		_validate_response(response)
+		return json.loads(response.text)
+
+	def test_ethernet(self):
+		""" Test ethernet status """
+		response = None
+		try:
+			response = requests.post(
+				urls.test_ethernet(self._giid),
+				headers={
+					'Content-Type': 'application/json',
+					'Cookie': 'vid={}'.format(self._vid)})
+		except requests.exceptions.RequestException as ex:
+			raise RequestError(ex)
+		_validate_response(response)
+
+	def logout(self):
+		""" Logout and remove vid """
+		response = None
+		try:
+			response = requests.delete(
+				urls.login(),
+				headers={
+					'Cookie': 'vid={}'.format(self._vid)})
+		except requests.exceptions.RequestException as ex:
+			raise RequestError(ex)
+		_validate_response(response)
