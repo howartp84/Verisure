@@ -28,6 +28,7 @@ class Plugin(indigo.PluginBase):
 
 		self.rateLimit = pluginPrefs.get("rateLimit", 30)
 		self.loggedIn = False
+		self.gettingData = False
 
 		self.lockIDs = list()
 		self.alarmIDs = list()
@@ -247,9 +248,13 @@ class Plugin(indigo.PluginBase):
 	def runConcurrentThread(self):
 		try:
 			while True:
+				if self.gettingData: #We shouldn't be; this means we've crashed out
+					self.login(True) #Logout and back in again
 
 				if self.loggedIn:
+					self.gettingData = True
 					self.refreshData()
+					self.gettingData = False
 						
 				self.sleep(int(self.rateLimit))
 		except self.StopThread:
