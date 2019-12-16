@@ -32,11 +32,15 @@ class Plugin(indigo.PluginBase):
 
 		self.lockIDs = list()
 		self.alarmIDs = list()
+		self.plugIDs = list()
 		
 		self.lidFromDev = dict()
 		self.alarmidFromDev = dict()
+		self.pidFromDev = dict()
 		self.devFromLid = dict()
 		self.devFromAlarmid = dict()
+		self.devFromPid = dict()
+		
 
 	########################################
 	def startup(self):
@@ -86,6 +90,17 @@ class Plugin(indigo.PluginBase):
 			self.devFromAlarmid[str(alarmID)] = int(devID)
 			
 			self.alarmIDs.append(alarmID)
+			
+		elif (dev.deviceTypeId == "verisureSmartPlugDeviceType"):
+			devID = dev.id																							#devID is the Indigo ID of my dummy device
+			plugID = dev.ownerProps['deviceLabel']											#plugID is the deviceLabel of the Verisure plug
+
+			self.pidFromDev[int(devID)] = str(plugID)
+			self.devFromPid[str(plugID)] = int(devID)
+
+			self.plugIDs.append(plugID)
+			
+			dev.updateStateOnServer("deviceLabel",plugID)
 
 
 	def deviceStopComm(self, dev):
@@ -198,6 +213,32 @@ class Plugin(indigo.PluginBase):
 						dev.updateStateImageOnServer(indigo.kStateImageSel.Locked)
 					elif dev.states['statusType'] == "DISARMED":
 						dev.updateStateImageOnServer(indigo.kStateImageSel.Unlocked)
+
+			smartPlugs = self.overview['smartPlugs']
+			for smartPlug in smartPlugs:
+				plugID = smartPlug["deviceLabel"]
+				if plugID in self.plugIDs:
+					dev = indigo.devices[int(self.devFromPid[str(plugID)])]
+					dev.updateStateOnServer("lastSynchronized", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+					for key in smartPlug.keys():
+						try:
+							dev.updateStateOnServer(key,smartPlug[key])
+							if (key == "area") and ("new device" in dev.name):
+								dev.name = u"Plug: %s" % smartPlug[key]
+								dev.replaceOnServer()
+						except:
+							pass
+					#Setting correct icon
+					#if dev.states['currentState'] == u"LOCKED":
+						#dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+						#dev.updateStateOnServer('onOffState', True)
+					#elif dev.states['currentLockState'] == u"UNLOCKED":
+						#dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+						#dev.updateStateOnServer('onOffState', False)
+					#elif dev.states['currentLockState'] == u"PENDING":
+						#dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
+					#else:
+						#dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
 
 	def getVerisureDeviceList(self, filter="All", typeId=0, valuesDict=None, targetId=0):
 		self.refreshData()

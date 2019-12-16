@@ -224,4 +224,56 @@
       </State>
     </States>
   </Device>
+  
+  <Device type="relay" id="verisureSmartPlugDeviceType">
+  	<Name>Verisure Smart Plug</Name>
+    <ConfigUI>
+      <Field id="deviceLabel" type="menu">
+        <Label>Plug ID</Label>
+        <List class="self" filter="plug" method="getVerisureDeviceList" dynamicReload="true"/>
+      </Field>
+    </ConfigUI>
+    <UiDisplayStateId>currentState</UiDisplayStateId>
+    <States>
+      <State id="currentState">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Plug State Changed</TriggerLabel>
+        <TriggerLabelPrefix>state changed to</TriggerLabelPrefix>
+        <ControlPageLabel>Current State</ControlPageLabel>
+        <ControlPageLabelPrefix>State is</ControlPageLabelPrefix>
+      </State>
+      <State id="pendingState">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Plug Pending Status Changed</TriggerLabel>
+        <TriggerLabelPrefix>Pending status changed to</TriggerLabelPrefix>
+        <ControlPageLabel>Pending Status</ControlPageLabel>
+        <ControlPageLabelPrefix>Pending status is</ControlPageLabelPrefix>
+      </State>
+      <State id="isHazardous">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Hazardous</TriggerLabel>
+        <ControlPageLabel>Hazardous</ControlPageLabel>
+      </State>
+      <State id="deviceLabel">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Current Label</TriggerLabel>
+        <ControlPageLabel>Current label</ControlPageLabel>
+      </State>
+      <State id="area">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Location</TriggerLabel>
+        <ControlPageLabel>Location</ControlPageLabel>
+      </State>
+      <State id="icon">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Icon</TriggerLabel>
+        <ControlPageLabel>Icon</ControlPageLabel>
+      </State>
+      <State id="lastSynchronized">
+        <ValueType>string</ValueType>
+        <TriggerLabel>Synchronized with Verisure</TriggerLabel>
+        <ControlPageLabel>Synchronized with Verisure</ControlPageLabel>
+      </State>
+    </States>
+  </Device>
 </Devices>
