@@ -237,6 +237,13 @@ class Plugin(indigo.PluginBase):
 		self.sleep(5)
 		self.refreshData()
 
+	def dumpOutput(self):
+		if not self.loggedIn:
+			self.doLogin()
+		else:
+			self.debugLog(self.session.get_overview())
+			
+			
 
 	########################################
 	# If runConcurrentThread() is defined, then a new thread is automatically created
