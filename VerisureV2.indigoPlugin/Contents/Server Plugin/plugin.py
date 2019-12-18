@@ -25,26 +25,28 @@ class Plugin(indigo.PluginBase):
 	def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
 		super(Plugin, self).__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		self.debug = pluginPrefs.get("showDebugInfo", False)
+		self.debug2 = pluginPrefs.get("showDebugInfo2", False)
 
-		self.rateLimit = pluginPrefs.get("rateLimit", 30)
+		self.rateLimit = pluginPrefs.get("updateRate", 30)
 		self.loggedIn = False
 		self.gettingData = False
 
 		self.lockIDs = list()
 		self.alarmIDs = list()
 		self.plugIDs = list()
-		
+
 		self.lidFromDev = dict()
 		self.alarmidFromDev = dict()
 		self.pidFromDev = dict()
 		self.devFromLid = dict()
 		self.devFromAlarmid = dict()
 		self.devFromPid = dict()
-		
+
 
 	########################################
 	def startup(self):
 		self.debugLog(u"startup called")
+		self.debugLog(u"rateLimit is %s" % self.rateLimit)
 		if "verisureUsername" not in self.pluginPrefs or "verisurePassword" not in self.pluginPrefs:
 			self.errorLog(u"Please enter Username and Password in Plugin Config")
 		else:
@@ -60,11 +62,17 @@ class Plugin(indigo.PluginBase):
 		self.debugLog(u"Plugin config dialog window closed.")
 		if not userCancelled:
 			self.debug = valuesDict.get("showDebugInfo", False)
+			self.debug2 = valuesDict.get("showDebugInfo2", False)
 			if self.debug:
 				indigo.server.log("Debug logging enabled")
 			else:
 				indigo.server.log("Debug logging disabled")
-			self.rateLimit = int(valuesDict.get("rateLimit", 30))
+			if self.debug2:
+				indigo.server.log("Debug super logging enabled")
+			else:
+				indigo.server.log("Debug super logging disabled")
+			self.rateLimit = int(valuesDict.get("updateRate", 30))
+			self.debugLog(u"rateLimit is %s" % self.rateLimit)
 			self.doLogin(True) #Logout first
 		return
 
@@ -121,6 +129,15 @@ class Plugin(indigo.PluginBase):
 			self.devFromAlarmid.pop(str(alarmID),None)
 			
 			self.alarmIDs.remove(alarmID)
+			
+		elif (dev.deviceTypeId == "verisureSmartPlugDeviceType"):
+			devID = dev.id
+			plugID = dev.ownerProps['deviceLabel']
+
+			self.pidFromDev.pop(int(devID),None)
+			self.devFromPid.pop(str(plugID),None)
+
+			self.plugIDs.remove(plugID)
 
 
 	def doLogin(self,logout=False):
@@ -145,6 +162,7 @@ class Plugin(indigo.PluginBase):
 			self.refreshData()
 
 	def doLogout(self):
+		self.loggedIn = False
 		try:
 			self.debugLog(u"Session exists - logging out")
 			self.session.logout()
@@ -229,9 +247,11 @@ class Plugin(indigo.PluginBase):
 						except:
 							pass
 					#Setting correct icon
-					#if dev.states['currentState'] == u"LOCKED":
-						#dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
-						#dev.updateStateOnServer('onOffState', True)
+					if dev.states["icon"] == "LIGHT":
+						if dev.states["currentState"]:
+							dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensorOn)
+						else:
+							dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensor)
 					#elif dev.states['currentLockState'] == u"UNLOCKED":
 						#dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
 						#dev.updateStateOnServer('onOffState', False)
@@ -255,6 +275,12 @@ class Plugin(indigo.PluginBase):
 			
 			for location in locations:
 				deviceList = deviceList + [(location["locationId"], location["locationName"])]
+
+		elif(filter == "plug"):
+			smartPlugs = self.overview['smartPlugs']
+			
+			for smartPlug in smartPlugs:
+				deviceList = deviceList + [(smartPlug["deviceLabel"], smartPlug["area"])]
 
 		return sorted(deviceList)
 
@@ -284,7 +310,9 @@ class Plugin(indigo.PluginBase):
 		else:
 			self.debugLog(self.session.get_overview())
 			
-			
+	def debugLog2(self,msg):
+		if self.debug2:
+			self.debugLog(msg)
 
 	########################################
 	# If runConcurrentThread() is defined, then a new thread is automatically created
@@ -297,13 +325,16 @@ class Plugin(indigo.PluginBase):
 		try:
 			while True:
 				if self.gettingData: #We shouldn't be; this means we've crashed out
+					self.debugLog2("rCT Crashed: 324")
 					self.login(True) #Logout and back in again
 
 				if self.loggedIn:
+					self.debugLog2("rCT refreshing")
 					self.gettingData = True
 					self.refreshData()
 					self.gettingData = False
-						
+				
+				self.debugLog2("rCT Sleeping %s" % str(self.rateLimit))
 				self.sleep(int(self.rateLimit))
 		except self.StopThread:
 			self.debugLog("StopThread")
