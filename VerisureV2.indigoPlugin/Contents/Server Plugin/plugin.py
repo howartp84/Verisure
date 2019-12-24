@@ -252,13 +252,10 @@ class Plugin(indigo.PluginBase):
 							dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensorOn)
 						else:
 							dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensor)
-					#elif dev.states['currentLockState'] == u"UNLOCKED":
-						#dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
-						#dev.updateStateOnServer('onOffState', False)
-					#elif dev.states['currentLockState'] == u"PENDING":
-						#dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
-					#else:
-						#dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+					if dev.states['currentLockState'] == u"ON":
+						dev.updateStateOnServer('onOffState', True)
+					elif dev.states['currentLockState'] == u"OFF":
+						dev.updateStateOnServer('onOffState', False)
 
 	def getVerisureDeviceList(self, filter="All", typeId=0, valuesDict=None, targetId=0):
 		self.refreshData()

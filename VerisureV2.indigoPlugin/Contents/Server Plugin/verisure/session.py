@@ -98,11 +98,13 @@ class Session(object):
 				self._get_installations()
 			except ResponseError: #Failed to login
 				self._vid = None
-				os.remove(self._cookieFileName)
+				if (os.path.isfile(self._cookieFileName)):
+					os.remove(self._cookieFileName)
 				return
 			except TypeError: #Failed to write VID as login failed
 				self._vid = None
-				os.remove(self._cookieFileName)
+				if (os.path.isfile(self._cookieFileName)):
+					os.remove(self._cookieFileName)
 				return
 
 		self._giid = self.installations[0]['giid']
