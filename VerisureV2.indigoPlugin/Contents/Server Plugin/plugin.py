@@ -252,9 +252,9 @@ class Plugin(indigo.PluginBase):
 							dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensorOn)
 						else:
 							dev.updateStateImageOnServer(indigo.kStateImageSel.LightSensor)
-					if dev.states['currentLockState'] == u"ON":
+					if dev.states['currentState'] == u"ON":
 						dev.updateStateOnServer('onOffState', True)
-					elif dev.states['currentLockState'] == u"OFF":
+					elif dev.states['currentState'] == u"OFF":
 						dev.updateStateOnServer('onOffState', False)
 
 	def getVerisureDeviceList(self, filter="All", typeId=0, valuesDict=None, targetId=0):
@@ -323,7 +323,7 @@ class Plugin(indigo.PluginBase):
 			while True:
 				if self.gettingData: #We shouldn't be; this means we've crashed out
 					self.debugLog2("rCT Crashed: 324")
-					self.login(True) #Logout and back in again
+					self.doLogin(True) #Logout and back in again
 
 				if self.loggedIn:
 					self.debugLog2("rCT refreshing")
