@@ -86,19 +86,19 @@ class Plugin(indigo.PluginBase):
 			self.devFromLid[str(lockID)] = int(devID)
 
 			self.lockIDs.append(lockID)
-			
+
 			dev.updateStateOnServer("deviceLabel",lockID)
-			
+
 		elif (dev.deviceTypeId == "verisureAlarmDeviceType"):
 			devID = dev.id																							#devID is the Indigo ID of my dummy device
 			alarmID = dev.ownerProps['alarmID']													#alarmID is the locationID of the Verisure installation
 			dev.updateStateOnServer("locationID",alarmID)
-			
+
 			self.alarmidFromDev[int(devID)] = str(alarmID)
 			self.devFromAlarmid[str(alarmID)] = int(devID)
-			
+
 			self.alarmIDs.append(alarmID)
-			
+
 		elif (dev.deviceTypeId == "verisureSmartPlugDeviceType"):
 			devID = dev.id																							#devID is the Indigo ID of my dummy device
 			plugID = dev.ownerProps['deviceLabel']											#plugID is the deviceLabel of the Verisure plug
@@ -107,7 +107,7 @@ class Plugin(indigo.PluginBase):
 			self.devFromPid[str(plugID)] = int(devID)
 
 			self.plugIDs.append(plugID)
-			
+
 			dev.updateStateOnServer("deviceLabel",plugID)
 
 
@@ -120,16 +120,16 @@ class Plugin(indigo.PluginBase):
 			self.devFromLid.pop(str(lockID),None)
 
 			self.lockIDs.remove(lockID)
-			
+
 		elif (dev.deviceTypeId == "verisureAlarmDeviceType"):
 			devID = dev.id
 			alarmID = dev.ownerProps['alarmID']
-			
+
 			self.alarmidFromDev.pop(int(devID),None)
 			self.devFromAlarmid.pop(str(alarmID),None)
-			
+
 			self.alarmIDs.remove(alarmID)
-			
+
 		elif (dev.deviceTypeId == "verisureSmartPlugDeviceType"):
 			devID = dev.id
 			plugID = dev.ownerProps['deviceLabel']
@@ -206,31 +206,33 @@ class Plugin(indigo.PluginBase):
 						dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
 					lConfig = self.session.get_lock_config(lockID)
 					dev.updateStateOnServer('autoLockEnabled', lConfig["autoLockEnabled"])
-			
-			userTracking = self.overview['userTracking']
-			locations = userTracking['locations']
+
+			#userTracking = self.overview['userTracking'] #Removed by Verisure October 2020 :(
+			#locations = userTracking['locations']
+
+
+			#for location in locations:
 			armState = self.overview['armState']
-			
-			for location in locations:
-				alarmID = location["locationId"]
-				if alarmID in self.alarmIDs:
-					dev = indigo.devices[int(self.devFromAlarmid[str(alarmID)])]
-					dev.updateStateOnServer("lastSynchronized", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-					dev.updateStateOnServer("location",location["locationName"])
-					if ("new device" in dev.name):
-						dev.name = u"Verisure Alarm"
-						dev.replaceOnServer()
-					for key in armState.keys():
-						try:
-							dev.updateStateOnServer(key,armState[key])
-						except:
-							pass
-					if dev.states['statusType'] == "ARMED_AWAY":
-						dev.updateStateImageOnServer(indigo.kStateImageSel.Locked)
-					elif dev.states['statusType'] == "ARMED_HOME":
-						dev.updateStateImageOnServer(indigo.kStateImageSel.Locked)
-					elif dev.states['statusType'] == "DISARMED":
-						dev.updateStateImageOnServer(indigo.kStateImageSel.Unlocked)
+			alarmID = "myAlarm"
+			if alarmID in self.alarmIDs:
+				dev = indigo.devices[int(self.devFromAlarmid[str(alarmID)])]
+				dev.updateStateOnServer("lastSynchronized", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+				#dev.updateStateOnServer("location",location["locationName"])
+				if ("new device" in dev.name):
+					dev.name = u"Verisure Alarm"
+					dev.replaceOnServer()
+				for key in armState.keys():
+					try:
+						self.debugLog("%s > %s" % (key,armState[key]))
+						dev.updateStateOnServer(key,armState[key])
+					except:
+						pass
+				if dev.states['statusType'] == "ARMED_AWAY":
+					dev.updateStateImageOnServer(indigo.kStateImageSel.Locked)
+				elif dev.states['statusType'] == "ARMED_HOME":
+					dev.updateStateImageOnServer(indigo.kStateImageSel.Locked)
+				elif dev.states['statusType'] == "DISARMED":
+					dev.updateStateImageOnServer(indigo.kStateImageSel.Unlocked)
 
 			smartPlugs = self.overview['smartPlugs']
 			for smartPlug in smartPlugs:
@@ -267,15 +269,15 @@ class Plugin(indigo.PluginBase):
 			for doorLock in doorLocks:
 				deviceList = deviceList + [(doorLock["deviceLabel"], doorLock["area"])]
 		elif(filter == "alarm"):
-			userTracking = self.overview['userTracking']
-			locations = userTracking['locations']
-			
-			for location in locations:
-				deviceList = deviceList + [(location["locationId"], location["locationName"])]
+			#userTracking = self.overview['userTracking']
+			#locations = userTracking['locations']
+
+			#for location in locations:
+			deviceList = deviceList + [("myAlarm", "My Alarm")]
 
 		elif(filter == "plug"):
 			smartPlugs = self.overview['smartPlugs']
-			
+
 			for smartPlug in smartPlugs:
 				deviceList = deviceList + [(smartPlug["deviceLabel"], smartPlug["area"])]
 
@@ -294,7 +296,7 @@ class Plugin(indigo.PluginBase):
 		dev.updateStateOnServer('autoLockEnabled', state)
 		self.sleep(5)
 		self.refreshData()
-		
+
 	def UpdateAlarmStatus(self, pluginAction, dev):
 		cmd = pluginAction.props['new_status']
 		self.session.set_arm_state(dev.ownerProps['userPin'],dev.ownerProps['deviceLabel'],cmd)
@@ -306,7 +308,7 @@ class Plugin(indigo.PluginBase):
 			self.doLogin()
 		else:
 			self.debugLog(self.session.get_overview())
-			
+
 	def debugLog2(self,msg):
 		if self.debug2:
 			self.debugLog(msg)
@@ -330,7 +332,7 @@ class Plugin(indigo.PluginBase):
 					self.gettingData = True
 					self.refreshData()
 					self.gettingData = False
-				
+
 				self.debugLog2("rCT Sleeping %s" % str(self.rateLimit))
 				self.sleep(int(self.rateLimit))
 		except self.StopThread:
@@ -364,7 +366,7 @@ class Plugin(indigo.PluginBase):
 				dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
 				self.sleep(5)
 				self.refreshData()
-			
+
 
 	########################################
 	# General Action callback

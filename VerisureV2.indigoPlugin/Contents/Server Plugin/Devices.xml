@@ -28,11 +28,11 @@
         <TriggerLabel>Person who made last change</TriggerLabel>
         <ControlPageLabel>Person who made last change</ControlPageLabel>
       </State>
-      <State id="location">
+      <!--<State id="location">
         <ValueType>String</ValueType>
         <TriggerLabel>Location</TriggerLabel>
         <ControlPageLabel>Location</ControlPageLabel>
-      </State>
+      </State>-->
       <State id="locationID">
         <ValueType>String</ValueType>
         <TriggerLabel>LocationID</TriggerLabel>
@@ -224,7 +224,7 @@
       </State>
     </States>
   </Device>
-  
+
   <Device type="relay" id="verisureSmartPlugDeviceType">
   	<Name>Verisure Smart Plug</Name>
     <ConfigUI>

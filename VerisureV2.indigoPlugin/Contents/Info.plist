@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>PluginVersion</key>
-	<string>2.0.9</string>
+	<string>2.0.10</string>
 	<key>ServerApiVersion</key>
 	<string>2.0</string>
 	<key>IwsApiVersion</key>
-	<string>1.0.0</string>	
+	<string>1.0.0</string>
 	<key>CFBundleDisplayName</key>
 	<string>Verisure v2</string>
 	<key>CFBundleIdentifier</key>
