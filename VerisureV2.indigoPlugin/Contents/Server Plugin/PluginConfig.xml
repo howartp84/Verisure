@@ -3,11 +3,11 @@
 	<Field id="showDebugInfo" type="checkbox">
 		<Label>Enable debugging:</Label>
 	</Field>
-	
+
 	<!--<Field id="showDebugInfo2" type="checkbox">
 		<Label>Enable super debugging:</Label>
 	</Field>-->
-  
+
   <Field id="verisureUsername" type="textfield" defaultValue="">
     <Label>Verisure Username:</Label>
   </Field>
@@ -18,10 +18,24 @@
     <Label>Status Update Rate:</Label>
     <List>
     	<Option value="5">5 sec</Option>
-      <Option value="15">15 sec</Option>
+			<Option value="6">6 sec</Option>
+			<Option value="7">7 sec</Option>
+			<Option value="8">8 sec</Option>
+			<Option value="9">9 sec</Option>
+			<Option value="10">10 sec</Option>
+			<Option value="11">11 sec</Option>
+			<Option value="12">12 sec</Option>
+			<Option value="13">13 sec</Option>
+			<Option value="14">14 sec</Option>
+			<Option value="15">15 sec</Option>
       <Option value="30">30 sec</Option>
+      <Option value="45">45 sec</Option>
       <Option value="60">1 min</Option>
+			<Option value="120">2 min</Option>
+			<Option value="180">3 min</Option>
+			<Option value="240">4 min</Option>
       <Option value="300">5 min</Option>
+      <Option value="600">10 min</Option>
       <Option value="900">15 min</Option>
       <Option value="1800">30 min</Option>
       <Option value="3600">1 hour</Option>

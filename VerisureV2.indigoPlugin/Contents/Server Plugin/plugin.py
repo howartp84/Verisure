@@ -223,7 +223,7 @@ class Plugin(indigo.PluginBase):
 					dev.replaceOnServer()
 				for key in armState.keys():
 					try:
-						self.debugLog("%s > %s" % (key,armState[key]))
+						#self.debugLog("%s > %s" % (key,armState[key]))
 						dev.updateStateOnServer(key,armState[key])
 					except:
 						pass
