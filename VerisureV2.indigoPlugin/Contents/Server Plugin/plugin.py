@@ -174,7 +174,7 @@ class Plugin(indigo.PluginBase):
 		if not self.loggedIn:
 			self.doLogin()
 		else: 					#doLogin() calls refreshData if it succeeds, so need else or we'll get stuck in loop
-			self.overview = self.session.get_overview()
+			#self.overview = self.session.get_overview()
 
 			self.debugLog(u"Checking status for all Verisure Devices")
 			self.overview = self.session.get_overview()
