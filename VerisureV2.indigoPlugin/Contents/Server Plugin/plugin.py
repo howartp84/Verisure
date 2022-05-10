@@ -150,7 +150,7 @@ class Plugin(indigo.PluginBase):
 			self.session = verisure.Session(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"],cookiePath)
 			self.debugLog(u"Logging in")
 			self.session.login()
-			if (hasattr(self.session,"_vid") and self.session._vid <> None):
+			if (hasattr(self.session,"_vid") and self.session._vid != None):
 				self.debugLog("Logged in successfully")
 				self.loggedIn = True
 			else:
